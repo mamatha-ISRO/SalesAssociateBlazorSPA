@@ -1,42 +1,140 @@
 ﻿@page "/"
 @inject HttpClient client
+@using Newtonsoft.Json.Converters;
+@using System.Linq;
 <PageTitle>Index</PageTitle>
 
-<h1>Sales Associate  Calculator</h1>
+<div class="me-0" >
+    <h3 style="align-content:center"> ABC Automotive is a car dealership </h3>
+    <img class="rounded" alt="Responsive image" src="/images/audi_car_image.jpg"/>
+    </div>
+<h3>Sales Associate  Calculator</h3>
 <h7> Select dates of Sale period </h7>
+
 <div> 
 <label for="start" class="col-form-label">From date: </label>  
-           <input type="date" value="2024-03-01"/>
+           <input type="date" value=""/>
 
            <label for="end" class="col-form-label">To date: </label>  
-           <input type="date" value="2024-03-31"/>
+           <input type="date" value="" />
 </div>
 <div>
+    <label for="carMake">Choose a Make:</label>
+    <select id="carMake" @bind="selectedCarMake" class="form-select">
+        <option value="">Select Car Make</option>
+        @if (cars != null)
+        {
+            foreach (var make in cars.Select(c => c["make"].ToString()).Distinct())
+            {
+                <option value="@make">@make</option>
+            }
+        }
+    </select>
+</div>
+       <div>
            <label for="model-select">Choose a Model:</label>
-           <select id="carMake" @bind="selectedCarModel" >
+           <select id="carModel" @bind="selectedCarModel" class="form-select"  >
             <option value="">Select Car Model</option>
-            <option value="Audi">Audi</option>
-            <option value="BMW">BMW</option>
-            <option value="Acura">Acura</option>            
-            <option value="Chevrolet">Chevrolet</option>
+                 @if (!string.IsNullOrEmpty(selectedCarMake))
+        {
+            var distinctModels = cars
+                .Where(car => car["make"].ToString().Equals(selectedCarMake, StringComparison.OrdinalIgnoreCase))
+                .Select(car => car["model"].ToString())
+                .Distinct();
+
+            foreach (var model in distinctModels)
+            {
+                <option value="@model">@model</option>
+            }
+        }       
+           </select>
+       </div>
+       <div>
+           <label for="type-select">Choose a Type:</label>
+           <select id="carType" @bind="selectedCarType" class="form-select" >
+            <option value="">Select Car Type</option>
+             @if (!string.IsNullOrEmpty(selectedCarModel))
+        {
+            var distinctTypes = cars
+                .Where(car => (car["make"].ToString().Equals(selectedCarMake, StringComparison.OrdinalIgnoreCase)) && (car["model"].ToString().Equals(selectedCarModel, StringComparison.OrdinalIgnoreCase)) ) 
+                .Select(car => car["carType"].ToString())
+                .Distinct();
+
+            foreach (var tpe in distinctTypes)
+            {
+                <option value="@tpe">@tpe</option>
+            }
+        }       
             
            </select>
-       </div> 
-       
+       </div>
        <div>
-            <input type="button" value="Calculate profit  and Commision" @onclick="CalcProfitNCommision"/>
+           <label for="model-select">Choose a Color:</label>
+           <select id="carColor" @bind="selectedCarColor" class="form-select" >
+            <option value="">Select Car Color</option>
+             @if (!string.IsNullOrEmpty(selectedCarModel))
+        {
+            var distinctColors = cars
+                .Where(car => (car["make"].ToString().Equals(selectedCarMake, StringComparison.OrdinalIgnoreCase)) && (car["model"].ToString().Equals(selectedCarModel, StringComparison.OrdinalIgnoreCase)) && (car["carType"].ToString().Equals(selectedCarType, StringComparison.OrdinalIgnoreCase)) ) 
+                .Select(car => car["color"].ToString())
+                .Distinct();
+
+            foreach (var clr in distinctColors)
+            {
+                <option value="@clr">@clr</option>
+            }
+        }       
+            
+           </select>
+       </div>
+       <div>
+ <label for="currsale" class="col-form-label">current sale date </label>  
+           <input type="date" value=""/>
+       </div>
+        
+       <div>
+            <input type="button"  class="btn btn-primary" value="Calculate profit  and Commision" @onclick="CalcProfitNCommision"/>
        </div>
        @selectedCarModel
+       <dic>
+        
+       </dic>
 @code{
+    string selectedCarMake;
     string selectedCarModel;
+    string selectedCarColor;
+    string selectedCarType;
     string myJsonResponce; 
-    //List<string> CarMakes = new List<string> { "Audi", "BMW", "Acura", "Cadillac", "Chevrolet" };
-    private async void CalcProfitNCommision()
-    {
-        var responce = await client.GetAsync("api/car");
+    DateOnly toSalePdate;
+    DateOnly fromsalePdate;
+    DateOnly reqSaledate;
+    public List<string>carMakes=  new List<string>();
+    private Newtonsoft.Json.Linq.JArray cars;
 
-        myJsonResponce = await responce.Content.ReadAsStringAsync();
+    protected async override void OnInitialized()
+    {
+        List<string> models = new List<string>();
+        List<string> makes = new List<string>();
+        List<string> colors = new List<string>();
+
+
+        var responce = await client.GetAsync("api/car");
+        var  myJsonResponce = await responce.Content.ReadAsStringAsync();
+        var carResp = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(myJsonResponce);
+        cars =Newtonsoft.Json.Linq.JArray.Parse(carResp.ToString());
+        Console.Write("hello");
+        StateHasChanged(); 
+       
     }
+
+  private async void CalcProfitNCommision()
+    {       
+
+
+    }
+
+
+   
     }
        
 
