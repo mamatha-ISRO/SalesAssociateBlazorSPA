@@ -1,6 +1,16 @@
 using Microsoft.AspNetCore.ResponseCompression;
 
+var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: MyAllowSpecificOrigins,
+                      policy =>
+                      {
+                          policy.WithOrigins("http://localhost:35077/api").AllowAnyHeader()
+                                                  .AllowAnyMethod(); ;
+                      });
+});
 
 // Add services to the container.
 
@@ -27,7 +37,7 @@ app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
 
 app.UseRouting();
-
+app.UseCors(MyAllowSpecificOrigins);
 
 app.MapRazorPages();
 app.MapControllers();

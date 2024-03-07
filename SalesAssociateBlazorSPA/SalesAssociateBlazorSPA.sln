@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.2.32630.192
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SalesAssociateBlazorSPA.Server", "SalesAssociateBlazorSPA\Server\SalesAssociateBlazorSPA.Server.csproj", "{ADB2F71A-ECB4-47A8-93BD-B7239017B5BD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SalesAssociateBlazorSPA.Server", "SalesAssociateBlazorSPA\Server\SalesAssociateBlazorSPA.Server.csproj", "{ADB2F71A-ECB4-47A8-93BD-B7239017B5BD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SalesAssociateBlazorSPA.Client", "SalesAssociateBlazorSPA\Client\SalesAssociateBlazorSPA.Client.csproj", "{4D91D7B7-16AD-4933-965D-91A20FEF2DB1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SalesAssociateBlazorSPA.Client", "SalesAssociateBlazorSPA\Client\SalesAssociateBlazorSPA.Client.csproj", "{4D91D7B7-16AD-4933-965D-91A20FEF2DB1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SalesAssociateBlazorSPA.Shared", "SalesAssociateBlazorSPA\Shared\SalesAssociateBlazorSPA.Shared.csproj", "{4BA12F0B-9051-407D-AB1B-05AC1B596685}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SalesAssociateBlazorSPA.Shared", "SalesAssociateBlazorSPA\Shared\SalesAssociateBlazorSPA.Shared.csproj", "{4BA12F0B-9051-407D-AB1B-05AC1B596685}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

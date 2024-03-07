@@ -1,9 +1,45 @@
-﻿@page "/home"
-
+﻿@page "/"
+@inject HttpClient client
 <PageTitle>Index</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>Sales Associate  Calculator</h1>
+<h7> Select dates of Sale period </h7>
+<div> 
+<label for="start" class="col-form-label">From date: </label>  
+           <input type="date" value="2024-03-01"/>
 
-Welcome to your new app.
+           <label for="end" class="col-form-label">To date: </label>  
+           <input type="date" value="2024-03-31"/>
+</div>
+<div>
+           <label for="model-select">Choose a Model:</label>
+           <select id="carMake" @bind="selectedCarModel" >
+            <option value="">Select Car Model</option>
+            <option value="Audi">Audi</option>
+            <option value="BMW">BMW</option>
+            <option value="Acura">Acura</option>            
+            <option value="Chevrolet">Chevrolet</option>
+            
+           </select>
+       </div> 
+       
+       <div>
+            <input type="button" value="Calculate profit  and Commision" @onclick="CalcProfitNCommision"/>
+       </div>
+       @selectedCarModel
+@code{
+    string selectedCarModel;
+    string myJsonResponce; 
+    //List<string> CarMakes = new List<string> { "Audi", "BMW", "Acura", "Cadillac", "Chevrolet" };
+    private async void CalcProfitNCommision()
+    {
+        var responce = await client.GetAsync("api/car");
+
+        myJsonResponce = await responce.Content.ReadAsStringAsync();
+    }
+    }
+       
+
+
 
 
