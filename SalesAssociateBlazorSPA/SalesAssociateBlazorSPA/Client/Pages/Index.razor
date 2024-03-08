@@ -17,7 +17,9 @@
 
            <label for="end" class="col-form-label">To date: </label>  
            <input type="date" for="todate" id="saletodate" name="saletodate" value="" @onchange=toHandleDateChange  />
+
 </div>
+<div class="alert alert-primary" role="alert"> @myalertmessage </div>
 <div>
     <label for="carMake">Choose a Make:</label>
     <select id="carMake" @bind="selectedCarMake" class="form-select">
@@ -116,7 +118,7 @@
     string toSalePdate;
     string fromsalePdate;
     string reqSaledate;
-
+    string myalertmessage;
     public List<string>carMakes=  new List<string>();
     public Newtonsoft.Json.Linq.JArray cars;
 
@@ -141,11 +143,13 @@
     }
     async Task toHandleDateChange(ChangeEventArgs args)
     {
-        toSalePdate = args.Value.ToString(); 
+        toSalePdate = args.Value.ToString();
+
     }
     async Task fromHandleDateChange(ChangeEventArgs args)
     {
         fromsalePdate = args.Value.ToString(); 
+
     }
 
 
@@ -159,75 +163,97 @@
         DateTime.TryParse(toSalePdate, out toPdateTime);
         DateTime.TryParse(fromsalePdate, out fromPdateTime);
 
-        // calculate sale period to current data gap 
-        double DaysDifference = (reqSaledateTime - toPdateTime).Days;
-        int weeksDifference = 0;    //    DaysDifference / 7;
-
-        if (DaysDifference > 0)
+        //Date selection verification
+        double saleperiodDifference=(toPdateTime  - fromPdateTime).Days;
+        double selApprSaledate = (reqSaledateTime - fromPdateTime).Days;
+        if ((saleperiodDifference < 1 ) || (selApprSaledate < 1))
         {
-            weeksDifference = (int)Math.Ceiling( DaysDifference / 7);
 
+            myalertmessage = "Select appropriate dates";
         }
-
-
-        var targetCar = cars
-            .Where(c => c["make"].ToString() == selectedCarMake &&
-                        c["model"].ToString() == selectedCarModel &&
-                        c["carType"].ToString() == selectedCarType &&
-                        c["color"].ToString() == selectedCarColor)
-            .Select(c => new
-            {
-                Cost = c["cost"].ToString(),
-                MSRP = c["msrp"].ToString()
-            })
-            .FirstOrDefault();
-
-        if(!string.IsNullOrEmpty(selectedCarType)) 
+        else
         {
-            switch (selectedCarType.ToLower())
+            if (!string.IsNullOrEmpty(selectedCarMake))
             {
-                //convertible MSRP will not change 
-                case "convertible":
 
-                    dealerProfit =int.Parse(targetCar.MSRP) -int.Parse(targetCar.Cost);
-                    SACommision = dealerProfit  * 0.125;
-                    SalepriceofCar = int.Parse(targetCar.MSRP);
-
-                    break;
-                    //SUV will only increase after sale date 
-                case "suv":
-
-                    SalepriceofCar = int.Parse(targetCar.MSRP) + int.Parse(targetCar.MSRP) * weeksDifference * 0.05;
-                    dealerProfit = SalepriceofCar - int.Parse(targetCar.Cost);
-                    SACommision = dealerProfit  * 0.125;
+                myalertmessage = "";
 
 
-                    break;
+                // calculate sale period to current data gap 
+                double DaysDifference = (reqSaledateTime - toPdateTime).Days;
+                int weeksDifference = 0;    //    DaysDifference / 7;
 
-                    //cars with other types, MSRP check with cost when decrease and also color -2% red cars, -4% for other color cars
-                default:
-                    double percentage = selectedCarColor.ToLower() == "red" ? 0.02 : 0.04;
+                if (DaysDifference > 0)
+                {
+                    weeksDifference = (int)Math.Ceiling(DaysDifference / 7);
 
-                    SalepriceofCar = int.Parse(targetCar.MSRP) - int.Parse(targetCar.MSRP) * weeksDifference * percentage;
-                    SalepriceofCar = SalepriceofCar < int.Parse(targetCar.Cost) ? int.Parse(targetCar.Cost) : SalepriceofCar;
-                    
-                    dealerProfit = SalepriceofCar - int.Parse(targetCar.Cost);                   
-                    SACommision = dealerProfit  * 0.125;
+                }
 
-                                      
-                  break;
-                 
-                
+
+                var targetCar = cars
+                    .Where(c => c["make"].ToString() == selectedCarMake &&
+                                c["model"].ToString() == selectedCarModel &&
+                                c["carType"].ToString() == selectedCarType &&
+                                c["color"].ToString() == selectedCarColor)
+                    .Select(c => new
+                    {
+                        Cost = c["cost"].ToString(),
+                        MSRP = c["msrp"].ToString()
+                    })
+                    .FirstOrDefault();
+
+                if (!string.IsNullOrEmpty(selectedCarType))
+                {
+                    switch (selectedCarType.ToLower())
+                    {
+                        //convertible MSRP will not change 
+                        case "convertible":
+
+                            dealerProfit = int.Parse(targetCar.MSRP) - int.Parse(targetCar.Cost);
+                            SACommision = dealerProfit * 0.125;
+                            SalepriceofCar = int.Parse(targetCar.MSRP);
+
+                            break;
+                        //SUV will only increase after sale date 
+                        case "suv":
+
+                            SalepriceofCar = int.Parse(targetCar.MSRP) + int.Parse(targetCar.MSRP) * weeksDifference * 0.05;
+                            dealerProfit = SalepriceofCar - int.Parse(targetCar.Cost);
+                            SACommision = dealerProfit * 0.125;
+
+
+                            break;
+
+                        //cars with other types, MSRP check with cost when decrease and also color -2% red cars, -4% for other color cars
+                        default:
+                            double percentage = selectedCarColor.ToLower() == "red" ? 0.02 : 0.04;
+
+                            SalepriceofCar = int.Parse(targetCar.MSRP) - int.Parse(targetCar.MSRP) * weeksDifference * percentage;
+                            SalepriceofCar = SalepriceofCar < int.Parse(targetCar.Cost) ? int.Parse(targetCar.Cost) : SalepriceofCar;
+
+                            dealerProfit = SalepriceofCar - int.Parse(targetCar.Cost);
+                            SACommision = dealerProfit * 0.125;
+
+
+                            break;
+
+
+                    }
+
+
+                }
             }
-       
-
+            else
+            {
+                myalertmessage = "Select Appropriate Car details";
+            
+            }
         }
-
     }
 
 
    
-    }
+}
        
 
 
