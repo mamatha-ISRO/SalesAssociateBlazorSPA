@@ -13,10 +13,10 @@
 
 <div> 
 <label for="start" class="col-form-label">From date: </label>  
-           <input type="date" value=""/>
+           <input type="date" value="" @onchange=fromHandleDateChange/>
 
            <label for="end" class="col-form-label">To date: </label>  
-           <input type="date" for="todate" id="saletodate" name="saletodate" value="" />
+           <input type="date" for="todate" id="saletodate" name="saletodate" value="" @onchange=toHandleDateChange  />
 </div>
 <div>
     <label for="carMake">Choose a Make:</label>
@@ -89,7 +89,7 @@
        </div>
        <div>
  <label for="currsale" class="col-form-label">Current sale date </label>  
-           <input type="date" for="select_saleday" value="" name="reqSaledate" id="reqSaledate"/>
+           <input type="date" for="select_saleday" value="" name="reqSaledate" id="reqSaledate" @onchange=saleHandleDateChange/>
        </div>
         
        <div>
@@ -97,8 +97,8 @@
        </div>
       
        <div name="profitndcommision" id="profitndcommision" >
-           Profit of the Dealer in CAD: @dealerProfit
-           Sales Associate Commision in CAD: @SACommision
+           Profit of the Dealer in CAD: @dealerProfit ,&#10;<br />
+           Sales Associate Commision in CAD: @SACommision ,&#10;<br />
            Sale price of the Car on the given date @reqSaledate in CAD : @SalepriceofCar
 
        </div>
@@ -113,9 +113,9 @@
     double dealerProfit;
     double SACommision;
     double SalepriceofCar;
-    DateTime toSalePdate;
-    DateTime fromsalePdate;
-    DateTime reqSaledate;
+    string toSalePdate;
+    string fromsalePdate;
+    string reqSaledate;
 
     public List<string>carMakes=  new List<string>();
     public Newtonsoft.Json.Linq.JArray cars;
@@ -135,13 +135,41 @@
         StateHasChanged(); 
 
     }
+    async Task saleHandleDateChange(ChangeEventArgs args)
+    {
+        reqSaledate = args.Value.ToString(); 
+    }
+    async Task toHandleDateChange(ChangeEventArgs args)
+    {
+        toSalePdate = args.Value.ToString(); 
+    }
+    async Task fromHandleDateChange(ChangeEventArgs args)
+    {
+        fromsalePdate = args.Value.ToString(); 
+    }
 
 
     private async void CalcProfitNCommision()
     {
+        DateTime reqSaledateTime;
+        DateTime toPdateTime;
+        DateTime fromPdateTime;
 
-        //  int DaysDifference = (reqSaledate.ToDateTime(TimeOnly.MinValue) - toSalePdate.ToDateTime(TimeOnly.MinValue)).Days;
-        // int weeksDifference = DaysDifference / 7;
+        DateTime.TryParse(reqSaledate, out reqSaledateTime);
+        DateTime.TryParse(toSalePdate, out toPdateTime);
+        DateTime.TryParse(fromsalePdate, out fromPdateTime);
+
+        // calculate sale period to current data gap 
+        double DaysDifference = (reqSaledateTime - toPdateTime).Days;
+        int weeksDifference = 0;    //    DaysDifference / 7;
+
+        if (DaysDifference > 0)
+        {
+            weeksDifference = (int)Math.Ceiling( DaysDifference / 7);
+
+        }
+
+
         var targetCar = cars
             .Where(c => c["make"].ToString() == selectedCarMake &&
                         c["model"].ToString() == selectedCarModel &&
@@ -156,25 +184,37 @@
 
         if(!string.IsNullOrEmpty(selectedCarType)) 
         {
-            switch (selectedCarType)
+            switch (selectedCarType.ToLower())
             {
+                //convertible MSRP will not change 
                 case "convertible":
 
                     dealerProfit =int.Parse(targetCar.MSRP) -int.Parse(targetCar.Cost);
                     SACommision = dealerProfit  * 0.125;
                     SalepriceofCar = int.Parse(targetCar.MSRP);
-                    Console.WriteLine($"For the given Car on the given date, Sale Price is = {SalepriceofCar} CAD Sales Associate commisin : {SACommision} CAD  Profit to deater: {dealerProfit} CAD");
+
+                    break;
+                    //SUV will only increase after sale date 
+                case "suv":
+
+                    SalepriceofCar = int.Parse(targetCar.MSRP) + int.Parse(targetCar.MSRP) * weeksDifference * 0.05;
+                    dealerProfit = SalepriceofCar - int.Parse(targetCar.Cost);
+                    SACommision = dealerProfit  * 0.125;
+
+
                     break;
 
-                 case "SUV":
+                    //cars with other types, MSRP check with cost when decrease and also color -2% red cars, -4% for other color cars
+                default:
+                    double percentage = selectedCarColor.ToLower() == "red" ? 0.02 : 0.04;
 
+                    SalepriceofCar = int.Parse(targetCar.MSRP) - int.Parse(targetCar.MSRP) * weeksDifference * percentage;
+                    SalepriceofCar = SalepriceofCar < int.Parse(targetCar.Cost) ? int.Parse(targetCar.Cost) : SalepriceofCar;
+                    
+                    dealerProfit = SalepriceofCar - int.Parse(targetCar.Cost);                   
+                    SACommision = dealerProfit  * 0.125;
 
-                 break;
-
-
-                 default:
-
-                  
+                                      
                   break;
                  
                 
