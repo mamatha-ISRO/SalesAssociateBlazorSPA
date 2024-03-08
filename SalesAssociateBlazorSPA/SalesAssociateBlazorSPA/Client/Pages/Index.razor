@@ -5,18 +5,18 @@
 <PageTitle>Index</PageTitle>
 
 <div class="me-0" >
-    <h3 style="align-content:center"> ABC Automotive is a car dealership </h3>
+    <h3 style="align-content:center"> ABC Automotive car dealer </h3>
     <img class="rounded" alt="Responsive image" src="/images/audi_car_image.jpg"/>
     </div>
 <h3>Sales Associate  Calculator</h3>
-<h7> Select dates of Sale period </h7>
+<h7> Select dates of Sale Season </h7>
 
 <div> 
 <label for="start" class="col-form-label">From date: </label>  
            <input type="date" value=""/>
 
            <label for="end" class="col-form-label">To date: </label>  
-           <input type="date" value="" />
+           <input type="date" for="todate" id="saletodate" name="saletodate" value="" />
 </div>
 <div>
     <label for="carMake">Choose a Make:</label>
@@ -88,28 +88,37 @@
            </select>
        </div>
        <div>
- <label for="currsale" class="col-form-label">current sale date </label>  
-           <input type="date" value=""/>
+ <label for="currsale" class="col-form-label">Current sale date </label>  
+           <input type="date" for="select_saleday" value="" name="reqSaledate" id="reqSaledate"/>
        </div>
         
        <div>
             <input type="button"  class="btn btn-primary" value="Calculate profit  and Commision" @onclick="CalcProfitNCommision"/>
        </div>
-       @selectedCarModel
-       <dic>
-        
-       </dic>
+      
+       <div name="profitndcommision" id="profitndcommision" >
+           Profit of the Dealer in CAD: @dealerProfit
+           Sales Associate Commision in CAD: @SACommision
+           Sale price of the Car on the given date @reqSaledate in CAD : @SalepriceofCar
+
+       </div>
+       
 @code{
     string selectedCarMake;
     string selectedCarModel;
     string selectedCarColor;
     string selectedCarType;
-    string myJsonResponce; 
-    DateOnly toSalePdate;
-    DateOnly fromsalePdate;
-    DateOnly reqSaledate;
+    string myJsonResponce;
+    int numberofweeks;
+    double dealerProfit;
+    double SACommision;
+    double SalepriceofCar;
+    DateTime toSalePdate;
+    DateTime fromsalePdate;
+    DateTime reqSaledate;
+
     public List<string>carMakes=  new List<string>();
-    private Newtonsoft.Json.Linq.JArray cars;
+    public Newtonsoft.Json.Linq.JArray cars;
 
     protected async override void OnInitialized()
     {
@@ -122,14 +131,57 @@
         var  myJsonResponce = await responce.Content.ReadAsStringAsync();
         var carResp = Newtonsoft.Json.JsonConvert.DeserializeObject<dynamic>(myJsonResponce);
         cars =Newtonsoft.Json.Linq.JArray.Parse(carResp.ToString());
-        Console.Write("hello");
+
         StateHasChanged(); 
-       
+
     }
 
-  private async void CalcProfitNCommision()
-    {       
 
+    private async void CalcProfitNCommision()
+    {
+
+        //  int DaysDifference = (reqSaledate.ToDateTime(TimeOnly.MinValue) - toSalePdate.ToDateTime(TimeOnly.MinValue)).Days;
+        // int weeksDifference = DaysDifference / 7;
+        var targetCar = cars
+            .Where(c => c["make"].ToString() == selectedCarMake &&
+                        c["model"].ToString() == selectedCarModel &&
+                        c["carType"].ToString() == selectedCarType &&
+                        c["color"].ToString() == selectedCarColor)
+            .Select(c => new
+            {
+                Cost = c["cost"].ToString(),
+                MSRP = c["msrp"].ToString()
+            })
+            .FirstOrDefault();
+
+        if(!string.IsNullOrEmpty(selectedCarType)) 
+        {
+            switch (selectedCarType)
+            {
+                case "convertible":
+
+                    dealerProfit =int.Parse(targetCar.MSRP) -int.Parse(targetCar.Cost);
+                    SACommision = dealerProfit  * 0.125;
+                    SalepriceofCar = int.Parse(targetCar.MSRP);
+                    Console.WriteLine($"For the given Car on the given date, Sale Price is = {SalepriceofCar} CAD Sales Associate commisin : {SACommision} CAD  Profit to deater: {dealerProfit} CAD");
+                    break;
+
+                 case "SUV":
+
+
+                 break;
+
+
+                 default:
+
+                  
+                  break;
+                 
+                
+            }
+       
+
+        }
 
     }
 
